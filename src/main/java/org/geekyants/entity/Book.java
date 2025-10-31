@@ -1,21 +1,20 @@
 package org.geekyants.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
 @Entity
 public class Book {
     @Id
+    @UuidGenerator
     private UUID id;
 
     @Column(nullable = false)
     private String title;
 
-    public Book(UUID id, String title, String author, BookCategory category, Boolean isAvailable, Integer totalCopies, Integer availableCopies, Boolean deleted, Long version) {
+    public Book(UUID id, String title, String author, BookCategory category, Boolean isAvailable, Integer totalCopies, Integer availableCopies) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -23,8 +22,6 @@ public class Book {
         this.isAvailable = isAvailable;
         this.totalCopies = totalCopies;
         this.availableCopies = availableCopies;
-        this.deleted = deleted;
-        this.version = version;
     }
 
     public Book() {
@@ -48,14 +45,8 @@ public class Book {
     @Column(nullable = false)
     private Integer availableCopies = 0;
 
-    @Column(nullable = false)
-    private Boolean deleted = false;
-
-    @Version
-    private Long version; // For optimistic locking
-
     public enum BookCategory {
-        FICTION, TECH, HISTORY, SCIENCE, BIOGRAPHY, FANTASY, MYSTERY, ROMANCE, SELF_HELP, OTHER
+        FICTION, TECH, HISTORY, SCIENCE, BIOGRAPHY, OTHER
     }
 
     public void setId(UUID id) {
@@ -86,14 +77,6 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    public void setVersion(Long version) {
-        this.version = version;
-    }
-
     public UUID getId() {
         return id;
     }
@@ -120,14 +103,6 @@ public class Book {
 
     public Integer getAvailableCopies() {
         return availableCopies;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public Long getVersion() {
-        return version;
     }
 
     public void borrowCopy() {

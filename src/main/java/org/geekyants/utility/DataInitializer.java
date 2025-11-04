@@ -1,8 +1,6 @@
 package org.geekyants.utility;
 
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.geekyants.entity.Book;
 import org.geekyants.entity.Borrower;
 import org.geekyants.entity.FinePolicy;
@@ -11,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.logging.Logger;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -18,7 +17,7 @@ public class DataInitializer implements CommandLineRunner {
     private final BookRepository bookRepository;
     private final BorrowerRepository borrowerRepository;
     private final FinePolicyRepository finePolicyRepository;
-
+    private static final Logger log = Logger.getLogger(DataInitializer.class.getName());
     public DataInitializer(BookRepository bookRepository, BorrowerRepository borrowerRepository, FinePolicyRepository finePolicyRepository) {
         this.bookRepository = bookRepository;
         this.borrowerRepository = borrowerRepository;
@@ -27,7 +26,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        //log.info("Initializing sample data...");
+        log.info("Initializing sample data");
 
         // Initialize Fine Policies
         initializeFinePolicies();
@@ -38,7 +37,7 @@ public class DataInitializer implements CommandLineRunner {
         // Initialize Borrowers
         initializeBorrowers();
 
-       // log.info("Sample data initialization completed");
+        log.info("Sample data initialization completed");
     }
 
     private void initializeFinePolicies() {
@@ -71,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
             createBook("A Brief History of Time", "Stephen Hawking", Book.BookCategory.SCIENCE, 3);
             createBook("The Innovators", "Walter Isaacson", Book.BookCategory.BIOGRAPHY, 2);
 
-           // log.info("Initialized {} books", bookRepository.count());
+            log.info("Initialized books" + bookRepository.count());
         }
     }
 
@@ -83,7 +82,6 @@ public class DataInitializer implements CommandLineRunner {
         book.setTotalCopies(copies);
         book.setAvailableCopies(copies);
         book.setAvailable(true);
-        book.setDeleted(false);
         bookRepository.save(book);
     }
 
@@ -95,7 +93,7 @@ public class DataInitializer implements CommandLineRunner {
             createBorrower("Alice Williams", "alice.williams@email.com", Borrower.MembershipType.PREMIUM);
             createBorrower("Charlie Brown", "charlie.brown@email.com", Borrower.MembershipType.BASIC);
 
-           // log.info("Initialized {} borrowers", borrowerRepository.count());
+            log.info("Initialized  borrowers " +borrowerRepository.count());
         }
     }
 

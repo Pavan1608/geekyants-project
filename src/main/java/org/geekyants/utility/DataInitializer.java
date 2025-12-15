@@ -4,7 +4,9 @@ package org.geekyants.utility;
 import org.geekyants.entity.Book;
 import org.geekyants.entity.Borrower;
 import org.geekyants.entity.FinePolicy;
-import org.geekyants.repository.*;
+import org.geekyants.repository.BookRepository;
+import org.geekyants.repository.BorrowerRepository;
+import org.geekyants.repository.FinePolicyRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +16,11 @@ import java.util.logging.Logger;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    private static final Logger log = Logger.getLogger(DataInitializer.class.getName());
     private final BookRepository bookRepository;
     private final BorrowerRepository borrowerRepository;
     private final FinePolicyRepository finePolicyRepository;
-    private static final Logger log = Logger.getLogger(DataInitializer.class.getName());
+
     public DataInitializer(BookRepository bookRepository, BorrowerRepository borrowerRepository, FinePolicyRepository finePolicyRepository) {
         this.bookRepository = bookRepository;
         this.borrowerRepository = borrowerRepository;
@@ -81,7 +84,7 @@ public class DataInitializer implements CommandLineRunner {
         book.setCategory(category);
         book.setTotalCopies(copies);
         book.setAvailableCopies(copies);
-        book.setAvailable(true);
+        book.setIsAvailable(true);
         bookRepository.save(book);
     }
 
@@ -93,7 +96,7 @@ public class DataInitializer implements CommandLineRunner {
             createBorrower("Alice Williams", "alice.williams@email.com", Borrower.MembershipType.PREMIUM);
             createBorrower("Charlie Brown", "charlie.brown@email.com", Borrower.MembershipType.BASIC);
 
-            log.info("Initialized  borrowers " +borrowerRepository.count());
+            log.info("Initialized  borrowers " + borrowerRepository.count());
         }
     }
 

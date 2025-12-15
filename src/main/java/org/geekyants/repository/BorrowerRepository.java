@@ -2,8 +2,12 @@ package org.geekyants.repository;
 
 import org.geekyants.entity.Borrower;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,13 +18,10 @@ public interface BorrowerRepository extends JpaRepository<Borrower, UUID> {
 
     boolean existsByEmail(String email);
 
-//    @Query("SELECT new com.library.management.dto.OverdueBorrowerResponse(" +
-//            "b.id, b.name, b.email, " +
-//            "CAST(COUNT(br.id) AS int), " +
-//            "MIN(br.dueDate)) " +
-//            "FROM Borrower b " +
-//            "JOIN BorrowRecord br ON br.borrowerId = b.id " +
-//            "WHERE br.returnDate IS NULL AND br.dueDate < :today " +
-//            "GROUP BY b.id, b.name, b.email")
-//    List<OverdueBorrowerResponse> findBorrowersWithOverdueBooks(@Param("today") LocalDate today);
+
+    @Query("SELECT b " +
+            "FROM Borrower b " +
+            "JOIN BorrowRecord br ON br.borrowerId = b.id " +
+            "WHERE br.returnDate IS NULL AND br.dueDate < :today ")
+    List<Borrower> findBorrowersWithOverdueBooks(@Param("today") LocalDate today);
 }

@@ -19,9 +19,9 @@ import java.util.logging.Logger;
 @Service
 public class BookService {
 
+    private static final Logger log = Logger.getLogger(BookService.class.getName());
     private final BookRepository bookRepository;
     private final BorrowRecordRepository borrowRecordRepository;
-    private static final Logger log = Logger.getLogger(BookService.class.getName());
 
     @Autowired
     public BookService(BookRepository bookRepository, BorrowRecordRepository borrowRecordRepository) {
@@ -30,7 +30,7 @@ public class BookService {
     }
 
     @Transactional
-   // @CacheEvict(value = "books", allEntries = true)
+    // @CacheEvict(value = "books", allEntries = true)
     public BookDTO addBook(BookDTO request) {
         log.info("Adding book: " + request.getTitle());
 
@@ -38,13 +38,13 @@ public class BookService {
         var existingBook = bookRepository.findByTitleAndAuthor(
                 request.getTitle(), request.getAuthor());
 
-        if (null!=existingBook) {
+        if (null != existingBook) {
             Book book = existingBook;
             book.setTotalCopies(book.getTotalCopies() + request.getTotalCopies());
             book.setAvailableCopies(book.getAvailableCopies() + request.getTotalCopies());
-            book.setAvailable(true);
+            book.setIsAvailable(true);
             Book savedBook = bookRepository.save(book);
-           log.info("Increased copies for existing book: " +savedBook.getId());
+            log.info("Increased copies for existing book: " + savedBook.getId());
             return toResponse(savedBook);
         }
 
@@ -55,31 +55,32 @@ public class BookService {
         book.setCategory(request.getCategory());
         book.setTotalCopies(request.getTotalCopies());
         book.setAvailableCopies(request.getTotalCopies());
-        book.setAvailable(true);
+        book.setIsAvailable(true);
 
         Book savedBook = bookRepository.save(book);
         log.info("Created new book with ID: {}" + savedBook.getId());
         return toResponse(savedBook);
     }
+
     private BookDTO toResponse(Book book) {
         return new BookDTO(
                 book.getId(),
                 book.getTitle(),
                 book.getAuthor(),
                 book.getCategory(),
-                book.getAvailable(),
+                book.getIsAvailable(),
                 book.getTotalCopies(),
                 book.getAvailableCopies()
         );
-   }
-    public  BookDTO getBook(UUID bookId)
-    {
-  return  bookRepository.findById(bookId).map(this::toResponse).orElse(null);
+    }
+
+    public BookDTO getBook(UUID bookId) {
+        return bookRepository.findById(bookId).map(this::toResponse).orElse(null);
 
     }
 
     public List<BookDTO> getBooks(Book.BookCategory category, Boolean available) {
-        List<Book> bookList= bookRepository.findAllByOptionalCategoryAndAvailability(category, available);
+        List<Book> bookList = bookRepository.findAllByOptionalCategoryAndAvailability(category, available);
         return Optional.of(bookList)
                 .stream()
                 .flatMap(List::stream)
@@ -88,7 +89,11 @@ public class BookService {
     }
 
     public void deleteBook(UUID id) {
-         bookRepository.deleteById(id);
+        if (borrowRecordRepository.existsByBookIdAndReturnDateIsNull(id)) {
+            bookRepository.deleteById(id);
+        } else
+            throw new LibraryManagementException("Cannot delete book with ID: " + id + " as it is currently borrowed.");
+
     }
 
     public List<BookDTO> getSimilarBooks(UUID id) {
@@ -107,17 +112,33 @@ public class BookService {
     }
 
     public BookDTO updateBook(UUID id, BookUpdateRequest bookUpdateRequest) {
-       Book book= bookRepository.findById(id)
-                .orElseThrow(()-> new LibraryManagementException("Book not found with ID: " + id));
-       book.setAuthor(bookUpdateRequest.getAuthor());
-       book.setAvailable(bookUpdateRequest.getAvailableCopies()!= null && bookUpdateRequest.getAvailableCopies()>1);
-       book.setAvailableCopies(bookUpdateRequest.getAvailableCopies());
-       book.setTitle(bookUpdateRequest.getTitle());
-       book.setTotalCopies(bookUpdateRequest.getTotalCopies());
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new LibraryManagementException("Book not found with ID: " + id));
+        book.setAuthor(bookUpdateRequest.getAuthor());
+        book.setIsAvailable(bookUpdateRequest.getAvailableCopies() != null && bookUpdateRequest.getAvailableCopies() > 1);
+        book.setAvailableCopies(bookUpdateRequest.getAvailableCopies());
+        book.setTitle(bookUpdateRequest.getTitle());
+        book.setTotalCopies(bookUpdateRequest.getTotalCopies());
 
-       return Optional.of(bookRepository.save(book)).map(this::toResponse).orElse(null);
+        return Optional.of(bookRepository.save(book)).map(this::toResponse).orElse(null);
 
     }
 
 
+    public void checkBookAvailability(UUID bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new LibraryManagementException("Book not found with ID: " + bookId));
+        if (book.getAvailableCopies() <= 0) {
+            throw new LibraryManagementException("Book with ID: " + bookId + " is not available for borrowing.");
+        }
+    }
+
+    public void updateBookAvailability(UUID bookId, int i) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new LibraryManagementException("Book not found with ID: " + bookId));
+        int updatedAvailableCopies = book.getAvailableCopies() + i;
+        book.setAvailableCopies(updatedAvailableCopies);
+        book.setIsAvailable(updatedAvailableCopies > 0);
+        bookRepository.save(book);
+    }
 }

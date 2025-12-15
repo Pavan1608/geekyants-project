@@ -8,8 +8,6 @@ import org.geekyants.entity.BookUpdateRequest;
 import org.geekyants.model.AvailabilitySummaryDTO;
 import org.geekyants.model.BookDTO;
 import org.geekyants.service.BookService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +21,7 @@ import java.util.UUID;
 public class BooksController {
 
 
-    private  final BookService bookService;
+    private final BookService bookService;
 
     public BooksController(BookService bookService) {
         this.bookService = bookService;

@@ -6,12 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.geekyants.entity.BookUpdateRequest;
-import org.geekyants.model.AvailabilitySummaryDTO;
-import org.geekyants.model.BookDTO;
 import org.geekyants.model.BorrowerDTO;
-import org.geekyants.model.BorrowerRecordDTO;
-import org.geekyants.service.BookService;
 import org.geekyants.service.BorrowerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +21,7 @@ import java.util.UUID;
 public class BorrowerController {
 
 
-    private  final BorrowerService borrowerService;
+    private final BorrowerService borrowerService;
 
     public BorrowerController(BorrowerService bookService) {
         this.borrowerService = bookService;
@@ -52,6 +47,20 @@ public class BorrowerController {
     public ResponseEntity<BorrowerDTO> getBorrowerRecords(
             @Parameter(description = "Borrower UUID") @PathVariable UUID id) {
         BorrowerDTO records = borrowerService.getBorrowerRecords(id);
+        return ResponseEntity.ok(records);
+    }
+
+    @GetMapping("/overdue")
+    @Operation(
+            summary = "Get borrower's borrow history",
+            description = "Returns all borrow records (past and present) for a specific borrower"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Records retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Borrower not found")
+    })
+    public ResponseEntity<List<BorrowerDTO>> getBorrowerWithOverDue() {
+        List<BorrowerDTO> records = borrowerService.getBorrowerWithOverDue();
         return ResponseEntity.ok(records);
     }
 

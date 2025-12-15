@@ -1,31 +1,32 @@
 package org.geekyants.service;
 
-import io.swagger.v3.oas.annotations.servers.Server;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import org.geekyants.entity.Borrower;
 import org.geekyants.model.BorrowerDTO;
 import org.geekyants.repository.BorrowerRepository;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
+
 @Service
 public class BorrowerService {
 
+    private static final Logger log = Logger.getLogger(BorrowerService.class.getName());
     private final BorrowerRepository borrowerRepository;
 
     public BorrowerService(BorrowerRepository borrowerRepository) {
         this.borrowerRepository = borrowerRepository;
     }
-    private static final Logger log = Logger.getLogger(BorrowerService.class.getName());
 
     @Transactional
     //@CacheEvict(value = "borrowers", allEntries = true)
     public BorrowerDTO registerBorrower(BorrowerDTO request) {
-        log.info("Registering new borrower with email: "+ request.getEmail());
+        log.info("Registering new borrower with email: " + request.getEmail());
 
         // Validate email uniqueness
         if (borrowerRepository.existsByEmail(request.getEmail())) {
@@ -42,13 +43,13 @@ public class BorrowerService {
 
         // Save borrower
         Borrower savedBorrower = borrowerRepository.save(borrower);
-        log.info("Successfully registered borrower with ID: {}"+ savedBorrower.getId());
+        log.info("Successfully registered borrower with ID: {}" + savedBorrower.getId());
 
         return toResponseDTO(savedBorrower);
     }
 
     public BorrowerDTO getBorrowerRecords(UUID id) {
-      return borrowerRepository.findById(id)
+        return borrowerRepository.findById(id)
                 .map(this::toResponseDTO)
                 .orElse(null);
 
@@ -65,4 +66,24 @@ public class BorrowerService {
         );
 
     }
+
+    public List<BorrowerDTO> getBorrowerWithOverDue() {
+        List<Borrower> borrowers = borrowerRepository.findBorrowersWithOverdueBooks(LocalDate.now());
+        return borrowers.stream().map(this::toResponseDTO).toList();
+    }
+
+    public void validateBorrower(UUID borrowerId) {
+        Borrower borrower = borrowerRepository.findById(borrowerId)
+                .orElseThrow(() -> new ValidationException("Borrower not found with ID: " + borrowerId));
+        Optional.ofNullable(borrower.getBorrowRecords())
+                .ifPresent(records -> {
+                    long activeBorrows = records.stream()
+                            .filter(record -> record.getReturnDate() == null)
+                            .count();
+                    if (activeBorrows >= borrower.getMaxBorrowLimit()) {
+                        throw new ValidationException("Borrower has reached the maximum borrow limit.");
+                    }
+                });
+    }
+
 }

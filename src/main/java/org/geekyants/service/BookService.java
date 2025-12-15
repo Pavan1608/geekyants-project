@@ -62,7 +62,6 @@ public class BookService {
         return toResponse(savedBook);
     }
     private BookDTO toResponse(Book book) {
-        BookDTO bookDTO = new BookDTO();
         return new BookDTO(
                 book.getId(),
                 book.getTitle(),

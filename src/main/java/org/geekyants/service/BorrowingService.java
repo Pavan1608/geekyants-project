@@ -2,21 +2,26 @@ package org.geekyants.service;
 
 import jakarta.transaction.Transactional;
 import org.geekyants.entity.BorrowRecord;
+import org.geekyants.model.BorrowRecordDTO;
 import org.geekyants.model.BorrowRequest;
+import org.geekyants.repository.FinePolicyService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class BorrowingService {
     private final BookService bookService;
     private final BorrowerService borrowerService;
     private final BorrowRecordService borrowRecordService;
+    private final FinePolicyService finePolicyService;
 
-    public BorrowingService(BookService bookService, BorrowerService borrowerService, BorrowRecordService borrowRecordService) {
+    public BorrowingService(BookService bookService, BorrowerService borrowerService, BorrowRecordService borrowRecordService, FinePolicyService finePolicyService) {
         this.bookService = bookService;
         this.borrowerService = borrowerService;
         this.borrowRecordService = borrowRecordService;
+        this.finePolicyService = finePolicyService;
     }
 
     @Transactional
@@ -51,7 +56,8 @@ public class BorrowingService {
         if (borrowRequest.getReturnDate().isAfter(borrowRecord.getDueDate())) {
             long daysLate = java.time.temporal.ChronoUnit.DAYS.between(
                     borrowRecord.getDueDate(), borrowRequest.getReturnDate());
-            borrowRecord.setFineAmount(BigDecimal.valueOf(daysLate * 1.0)); // Assuming $1 fine per day late
+            BigDecimal fineAmount = finePolicyService.getFinePerDayByCategory(borrowRecord.getBook().getCategory());
+            borrowRecord.setFineAmount(BigDecimal.valueOf(daysLate).multiply(fineAmount));
         } else {
             borrowRecord.setFineAmount(BigDecimal.valueOf(0.0));
         }
@@ -59,5 +65,9 @@ public class BorrowingService {
         // Save updated borrow record and update book availability
         borrowRecordService.saveBorrowRecord(borrowRecord);
         bookService.updateBookAvailability(borrowRequest.getBookId(), 1);
+    }
+
+    public List<BorrowRecordDTO> getAllActiveBorrowRecords() {
+        return borrowRecordService.getAllActiveBorrowRecords();
     }
 }

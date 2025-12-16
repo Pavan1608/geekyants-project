@@ -2,9 +2,11 @@ package org.geekyants.utility;
 
 
 import org.geekyants.entity.Book;
+import org.geekyants.entity.BorrowRecord;
 import org.geekyants.entity.Borrower;
 import org.geekyants.entity.FinePolicy;
 import org.geekyants.repository.BookRepository;
+import org.geekyants.repository.BorrowRecordRepository;
 import org.geekyants.repository.BorrowerRepository;
 import org.geekyants.repository.FinePolicyRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -20,11 +22,13 @@ public class DataInitializer implements CommandLineRunner {
     private final BookRepository bookRepository;
     private final BorrowerRepository borrowerRepository;
     private final FinePolicyRepository finePolicyRepository;
+    private final BorrowRecordRepository borrowRecordRepository;
 
-    public DataInitializer(BookRepository bookRepository, BorrowerRepository borrowerRepository, FinePolicyRepository finePolicyRepository) {
+    public DataInitializer(BookRepository bookRepository, BorrowerRepository borrowerRepository, FinePolicyRepository finePolicyRepository, BorrowRecordRepository borrowRecordRepository) {
         this.bookRepository = bookRepository;
         this.borrowerRepository = borrowerRepository;
         this.finePolicyRepository = finePolicyRepository;
+        this.borrowRecordRepository = borrowRecordRepository;
     }
 
     @Override
@@ -40,7 +44,27 @@ public class DataInitializer implements CommandLineRunner {
         // Initialize Borrowers
         initializeBorrowers();
 
+        //Initialize Borrow Records
+        initializeBorrowRecords();
+
         log.info("Sample data initialization completed");
+    }
+
+    private void initializeBorrowRecords() {
+        Book book = bookRepository.findByTitleAndAuthor("The Great Gatsby", "F. Scott Fitzgerald");
+        Borrower borrower = borrowerRepository.findByEmail("john.doe@email.com").orElse(null);
+        if (book != null && borrower != null) {
+            BorrowRecord borrowRecord = new BorrowRecord();
+            borrowRecord.setBookId(book.getId());
+            borrowRecord.setBorrowerId(borrower.getId());
+            borrowRecord.setBorrowDate(java.time.LocalDate.now().minusDays(10));
+            borrowRecord.setDueDate(java.time.LocalDate.now().plusDays(4));
+            borrowRecord.setBorrower(borrower);
+            borrowRecord.setBook(book);
+            // Assuming you have a BorrowRecordRepository to save the record
+            borrowRecordRepository.save(borrowRecord);
+            log.info("Initialized borrow record for 'The Great Gatsby' by John Doe");
+        }
     }
 
     private void initializeFinePolicies() {

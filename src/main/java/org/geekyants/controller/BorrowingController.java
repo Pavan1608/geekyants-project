@@ -1,10 +1,15 @@
 package org.geekyants.controller;
 
+import org.geekyants.model.BorrowRecordDTO;
 import org.geekyants.model.BorrowRequest;
 import org.geekyants.service.BorrowingService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController()
 public class BorrowingController {
@@ -25,5 +30,10 @@ public class BorrowingController {
     public String returnBook(@RequestBody BorrowRequest borrowRequest) {
         borrowingService.returnBook(borrowRequest);
         return "Book returned successfully";
+    }
+
+    @GetMapping("/records/active")
+    public ResponseEntity<List<BorrowRecordDTO>> getAllActiveBorrowRecords() {
+        return ResponseEntity.ok(borrowingService.getAllActiveBorrowRecords());
     }
 }

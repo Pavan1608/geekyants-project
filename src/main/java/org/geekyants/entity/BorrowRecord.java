@@ -21,10 +21,10 @@ public class BorrowRecord {
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "book_Id", nullable = false)
     private UUID bookId;
 
-    @Column(name = "borrower_id", nullable = false)
+    @Column(name = "borrower_Id", nullable = false)
     private UUID borrowerId;
 
     @Column(nullable = false)
@@ -38,12 +38,13 @@ public class BorrowRecord {
     @Column(precision = 10, scale = 2)
     private BigDecimal fineAmount;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "bookId", insertable = false, updatable = false)
-//    private Book book;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_Id", insertable = false, updatable = false)
+    @JsonBackReference
+    private Book book;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "borrower_id", insertable = false, updatable = false)
+    @JoinColumn(name = "borrower_Id", insertable = false, updatable = false)
     @JsonBackReference
     private Borrower borrower;
 }

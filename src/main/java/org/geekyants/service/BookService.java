@@ -3,7 +3,6 @@ package org.geekyants.service;
 import org.geekyants.entity.Book;
 import org.geekyants.entity.BookUpdateRequest;
 import org.geekyants.exception.LibraryManagementException;
-import org.geekyants.model.AvailabilitySummaryDTO;
 import org.geekyants.model.BookDTO;
 import org.geekyants.repository.BookRepository;
 import org.geekyants.repository.BorrowRecordRepository;
@@ -107,9 +106,6 @@ public class BookService {
                 .toList();
     }
 
-    public List<AvailabilitySummaryDTO> getAvailabilitySummary() {
-        return null;
-    }
 
     public BookDTO updateBook(UUID id, BookUpdateRequest bookUpdateRequest) {
         Book book = bookRepository.findById(id)

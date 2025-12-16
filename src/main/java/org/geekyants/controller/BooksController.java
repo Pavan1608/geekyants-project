@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.geekyants.entity.Book;
 import org.geekyants.entity.BookUpdateRequest;
-import org.geekyants.model.AvailabilitySummaryDTO;
 import org.geekyants.model.BookDTO;
 import org.geekyants.service.BookService;
 import org.springframework.http.HttpStatus;
@@ -70,13 +69,6 @@ public class BooksController {
     public ResponseEntity<List<BookDTO>> getSimilarBooks(@PathVariable UUID id) {
         List<BookDTO> books = bookService.getSimilarBooks(id);
         return ResponseEntity.ok(books);
-    }
-
-    @GetMapping("/availability-summary")
-    @Operation(summary = "Get availability summary by category")
-    public ResponseEntity<List<AvailabilitySummaryDTO>> getAvailabilitySummary() {
-        List<AvailabilitySummaryDTO> summary = bookService.getAvailabilitySummary();
-        return ResponseEntity.ok(summary);
     }
 }
 

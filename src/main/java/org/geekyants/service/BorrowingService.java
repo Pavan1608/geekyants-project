@@ -2,6 +2,7 @@ package org.geekyants.service;
 
 import jakarta.transaction.Transactional;
 import org.geekyants.entity.BorrowRecord;
+import org.geekyants.exception.LibraryManagementException;
 import org.geekyants.model.BorrowRecordDTO;
 import org.geekyants.model.BorrowRequest;
 import org.geekyants.repository.FinePolicyService;
@@ -52,6 +53,9 @@ public class BorrowingService {
                 borrowRequest.getBookId(), borrowRequest.getBorrowerId());
 
         // Process return logic (e.g., update borrow record, calculate fines, update book availability)
+        if(borrowRecord == null) {
+            throw new LibraryManagementException("No active borrow record found for this book and borrower.");
+        }
         borrowRecord.setReturnDate(borrowRequest.getReturnDate());
         if (borrowRequest.getReturnDate().isAfter(borrowRecord.getDueDate())) {
             long daysLate = java.time.temporal.ChronoUnit.DAYS.between(
